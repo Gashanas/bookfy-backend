@@ -13,13 +13,17 @@ router.post('/api/v1/book', (req, res, next) => {
     // Grab data from http request
     if (req.body.title) {
         const data = req.body;
+        // data.pageCount = parseInt(data.pageCount);
+        console.log(data.allowAnonLogging);
         // Get a Postgres client from the connection
         pg.connect(connectionString, (err, client, done) => {
             if (err) {
                 done();
                 return res.status(500).json({success: false, message: err});
             }
-            client.query('INSERT INTO books (title) values ($1)', [data.title]);
+            client.query('INSERT INTO books (title, description, authors, "pageCount", "smallThumbnail", thumbnail, "publishedDate", bookid) ' +
+            'values ($1, $2, $3, $4, $5, $6, $7, $8)',
+            [data.title, data.description, data.authors, data.pageCount, data.smallThumbnail, data.thumbnail, data.publishedDate, data.bookid]);
             getAllBooksAndReturn(client, res);
         });
     } else {
