@@ -59,6 +59,24 @@ router.delete('/api/v1/book/:todo_id', (req, res, next) => {
     }
 });
 
+router.put('/api/v1/book/:todo_id', (req, res, next) => {
+    const results = [];
+const data = req.body.volumeInfo;
+if(!req.params.todo_id){
+    return res.status(400).json({success: false, message: "Please provide book id"});
+} else {
+    const id = req.params.todo_id;
+    pg.connect(connectionString, (err, client, done) => {
+        if (err) {
+            done();
+            return res.status(500).json({success: false, message: err});
+        }
+        client.query('UPDATE books SET  title=($1) WHERE bookid=($2)', [data.title,id]);
+    getAllBooksAndReturn(client, res);
+});
+}
+});
+
 function getAllBooksAndReturn(client, res) {
     const results = [];
     client.query('SELECT * FROM books', (err, res) => {
