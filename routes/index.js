@@ -11,8 +11,8 @@ const connectionString = process.env.DATABASE_URL || 'postgres://szxdlmfkqhdcfv:
 router.post('/api/v1/book', (req, res, next) => {
     const results = [];
     // Grab data from http request
-    if (req.body.title) {
-        const data = req.body;
+    if (req.body.volumeInfo) {
+        const data = req.body.volumeInfo;
         // data.pageCount = parseInt(data.pageCount);
         console.log(data.allowAnonLogging);
         // Get a Postgres client from the connection
@@ -23,7 +23,7 @@ router.post('/api/v1/book', (req, res, next) => {
             }
             client.query('INSERT INTO books (title, description, authors, "pageCount", "smallThumbnail", thumbnail, "publishedDate", bookid) ' +
             'values ($1, $2, $3, $4, $5, $6, $7, $8)',
-            [data.title, data.description, data.authors, data.pageCount, data.smallThumbnail, data.thumbnail, data.publishedDate, data.bookid]);
+            [data.title, data.description, data.authors, data.pageCount, data.imageLinks.smallThumbnail, data.imageLinks.thumbnail, data.publishedDate, req.body.id]);
             getAllBooksAndReturn(client, res);
         });
     } else {
@@ -42,20 +42,18 @@ router.get('/api/v1/books', (req, res, next) => {
     });
 });
 
-router.delete('/api/v1/book', (req, res, next) => {
+router.delete('/api/v1/book/:todo_id', (req, res, next) => {
     const results = [];
-    if(!req.body.id){
+    if(!req.params.todo_id){
         return res.status(400).json({success: false, message: "Please provide book id"});
-    } else if (!isNumeric(parseInt(req.body.id))){
-        return res.status(400).json({success: false, message: "Invalid id, it should be a number"});
     } else {
-        const id = req.body.id;
+        const id = req.params.todo_id;
         pg.connect(connectionString, (err, client, done) => {
             if (err) {
                 done();
                 return res.status(500).json({success: false, message: err});
             }
-            client.query('DELETE FROM books WHERE id=($1)', [id]);
+            client.query('DELETE FROM books WHERE bookid=($1)', [id]);
             getAllBooksAndReturn(client, res);
         });
     }
